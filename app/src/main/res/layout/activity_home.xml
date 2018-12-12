@@ -19,7 +19,7 @@
         app:srcCompat="@drawable/lucky_wheel_log" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/btn_play"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -45,28 +45,28 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
-            android:id="@+id/imageView5"
+            android:id="@+id/icon_burger"
             android:layout_width="@dimen/food_icon"
             android:layout_height="@dimen/food_icon"
             android:layout_weight="1"
             app:srcCompat="@drawable/burger" />
 
         <ImageView
-            android:id="@+id/imageView4"
+            android:id="@+id/icon_chips"
             android:layout_width="@dimen/food_icon"
             android:layout_height="@dimen/food_icon"
             android:layout_weight="1"
             app:srcCompat="@drawable/potatoes" />
 
         <ImageView
-            android:id="@+id/imageView6"
+            android:id="@+id/icon_pizza"
             android:layout_width="@dimen/food_icon"
             android:layout_height="@dimen/food_icon"
             android:layout_weight="1"
             app:srcCompat="@drawable/pizza" />
 
         <ImageView
-            android:id="@+id/imageView2"
+            android:id="@+id/icon_eggs"
             android:layout_width="@dimen/food_icon"
             android:layout_height="@dimen/food_icon"
             android:layout_weight="1"
@@ -74,11 +74,34 @@
             app:srcCompat="@drawable/egg" />
 
         <ImageView
-            android:id="@+id/imageView3"
+            android:id="@+id/icon_popcorn"
             android:layout_width="@dimen/food_icon"
             android:layout_height="@dimen/food_icon"
             android:layout_weight="1"
             app:srcCompat="@drawable/popcorn" />
     </LinearLayout>
+
+    <ImageView
+        android:id="@+id/imageView7"
+        android:layout_width="26dp"
+        android:layout_height="23dp"
+        app:srcCompat="@drawable/my_gifts"
+        tools:layout_editor_absoluteX="348dp"
+        tools:layout_editor_absoluteY="41dp" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/home_my_gifts"
+        android:textColor="#fff"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/imageView7"
+        app:layout_constraintHorizontal_bias="0.527"
+        app:layout_constraintStart_toStartOf="@+id/imageView7"
+        app:layout_constraintTop_toBottomOf="@+id/imageView7"
+        app:layout_constraintVertical_bias="0.0" />
 
 </android.support.constraint.ConstraintLayout>

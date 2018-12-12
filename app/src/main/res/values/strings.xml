@@ -2,4 +2,6 @@
     <string name="app_name">ItsAppToYou</string>
     <string name="title_activity_home">HomeActivity</string>
     <string name="home_my_gifts">Τα δώρα μου</string>
+    <string name="key_tries">key_tries</string>
+    <string name="toast_no_tries_left">Δεν έχεις άλλες προσπάθειες</string>
 </resources>

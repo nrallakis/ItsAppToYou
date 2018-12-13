@@ -1,34 +1,31 @@
 package com.ndn.itsapptoyou;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.Snackbar;
+import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.Random;
-
 public class PlayActivity extends AppCompatActivity {
 
-    private static final float ITEM_DEGREES = 30f;
     private static final int DEFAULT_TRIES = 5;
-    private static final int ROTATION_DURATION = 3500;
 
-    private Random random;
-    private Animation animation;
-    private ImageView wheel;
+    private ConstraintLayout layout;
+
+    private Wheel wheel;
     private TextView triesText;
     private Button spinButton;
 
-    private float previousDegrees;
     private int triesLeft;
+
+    private GestureDetectorCompat gestureDetector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,33 +33,92 @@ public class PlayActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
 
+        loadTriesLeft();
+        initUI();
+    }
+
+    private void loadTriesLeft() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         triesLeft = prefs.getInt(getString(R.string.key_tries), DEFAULT_TRIES);
+    }
 
-        random = new Random();
-        animation = randomAnimation(previousDegrees);
+    @SuppressLint("ClickableViewAccessibility")
+    private void initUI() {
+        layout = findViewById(R.id.layout);
 
         wheel = findViewById(R.id.wheelView);
+        gestureDetector = new GestureDetectorCompat(this, new CustomGestureListener(wheel) {
+            @Override
+            public boolean onSwipeRight() {
+                if (triesLeft == 0) {
+                    showNoTriesLeftSnack();
+                    return true;
+                }
+                //Do not let user spin while the wheel is moving.
+                spinButton.setEnabled(false);
+
+                triesLeft--;
+                wheel.spinRight();
+                updateTriesText(triesLeft);
+                return true;
+            }
+
+            @Override
+            public boolean onSwipeLeft() {
+                if (triesLeft == 0) {
+                    showNoTriesLeftSnack();
+                    return true;
+                }
+                //Do not let user spin while the wheel is moving.
+                spinButton.setEnabled(false);
+
+                triesLeft--;
+                wheel.spinLeft();
+                updateTriesText(triesLeft);
+                return true;
+            }
+        });
+        wheel.setGestureDetector(gestureDetector);
+        wheel.setSpinListener(new Wheel.SpinListener() {
+            @Override
+            public void onSpinStart() {
+                //Start sound
+            }
+
+            @Override
+            public void onSpinEnd() {
+                spinButton.setEnabled(true);
+            }
+        });
 
         spinButton = findViewById(R.id.btn_spin);
         spinButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (triesLeft == 0) {
-                    Toast.makeText(PlayActivity.this, R.string.toast_no_tries_left, Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                spinButton.setEnabled(false);
-                triesLeft--;
-                wheel.startAnimation(animation);
-                animation = randomAnimation(previousDegrees);
-                updateTriesText(triesLeft);
+                onSpinClick();
             }
         });
 
         triesText = findViewById(R.id.tv_tries);
         updateTriesText(triesLeft);
+    }
 
+    private void onSpinClick() {
+        if (triesLeft == 0) {
+            showNoTriesLeftSnack();
+            return;
+        }
+        //Do not let user spin while the wheel is moving.
+        spinButton.setEnabled(false);
+
+        triesLeft--;
+        wheel.spinRight();
+        updateTriesText(triesLeft);
+
+    }
+
+    private void showNoTriesLeftSnack() {
+        Snackbar.make(layout, R.string.toast_no_tries_left, Snackbar.LENGTH_LONG).show();
     }
 
     @Override
@@ -76,31 +132,6 @@ public class PlayActivity extends AppCompatActivity {
             editor.putInt(getString(R.string.key_tries), triesLeft);
         }
         editor.apply();
-    }
-
-    private Animation randomAnimation(float fromDegrees) {
-        final float randomDegrees = ITEM_DEGREES * random.nextInt(36) + 540f;
-
-        RotateAnimation animation = new RotateAnimation(fromDegrees, fromDegrees + randomDegrees, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-        animation.setDuration(ROTATION_DURATION);
-        animation.setInterpolator(new AccelerateDecelerateInterpolator());
-        animation.setFillAfter(true);
-        animation.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {}
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                spinButton.setEnabled(true);
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {}
-        });
-
-        previousDegrees = (fromDegrees + randomDegrees) % 360;
-
-        return animation;
     }
 
     private void updateTriesText(int triesLeft) {

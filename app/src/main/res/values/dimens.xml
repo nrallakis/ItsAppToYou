@@ -1,4 +1,4 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
-    <dimen name="food_icon">57dp</dimen>
+    <dimen name="food_icon">65dp</dimen>
 </resources>

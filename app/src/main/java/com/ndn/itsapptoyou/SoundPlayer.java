@@ -64,8 +64,6 @@ public class SoundPlayer {
         if (player == null) return;
         if (player.isPlaying()) {
             player.pause();
-        } else {
-            player.start();
         }
     }
 

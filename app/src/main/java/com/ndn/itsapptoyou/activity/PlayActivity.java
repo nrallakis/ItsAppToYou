@@ -1,18 +1,24 @@
 package com.ndn.itsapptoyou.activity;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.text.Html;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.ndn.itsapptoyou.CustomGestureListener;
@@ -24,41 +30,35 @@ import com.ndn.itsapptoyou.view.Wheel;
 
 public class PlayActivity extends AppCompatActivity {
 
-    private static final int DEFAULT_TRIES = 5;
+    public static final String EXTRA_GIFT_INDEX = "key_gift_index";
+    public static final int DEFAULT_TRIES = 5;
 
     private static final String FILENAME = "gifts.json";
+
 
     private ConstraintLayout layout;
 
     private Wheel wheel;
     private TextView triesText;
     private Button spinButton;
-    private ImageView backButton;
+    private ImageButton backButton;
+    private RelativeLayout tutorialDialog;
 
     private int triesLeft;
-
-    private Gift[] giftsOfWheel;
+    private int giftIndex;
+    private Animation scaleAnimation;
 
     private GestureDetectorCompat gestureDetector;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
 
-        Gift burger = new Gift("1+1 burger meal στα Simply Burgers", R.drawable.burger);
-        Gift pizza = new Gift("1+1 πίτσα στην Pizza Hut", R.drawable.pizza);
-        Gift cinema = new Gift("1+1 εισητήριο στα Village Cinemas", R.drawable.popcorn);
-        Gift breakfast = new Gift("5€ κουπόνι πρωινού στα TGI Fridays", R.drawable.egg);
-        Gift hotdog = new Gift("1+1 hot dog στο Street Dog", R.drawable.sanduits);
-        Gift none = new Gift("", 0);
-        giftsOfWheel = new Gift[]{
-                none, pizza, breakfast, none,
-                cinema, burger, none, pizza,
-                breakfast, none, hotdog, burger
-        };
+        scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.bounce);
+        LinearInterpolator interpolator = new LinearInterpolator();
+        scaleAnimation.setDuration(400);
+        scaleAnimation.setInterpolator(interpolator);
 
         loadTriesLeft();
         initUI();
@@ -71,16 +71,27 @@ public class PlayActivity extends AppCompatActivity {
 
     @SuppressLint("ClickableViewAccessibility")
     private void initUI() {
+        tutorialDialog = findViewById(R.id.rl_tutorial);
+        tutorialDialog.startAnimation(scaleAnimation);
+
         layout = findViewById(R.id.layout);
+        layout.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                hideTutorial();
+                return true;
+            }
+        });
 
         wheel = findViewById(R.id.wheelView);
         initGestureDetector();
         wheel.setGestureDetector(gestureDetector);
         wheel.setSpinListener(new Wheel.SpinListener() {
             @Override
-            public void onSpinStart() {
+            public void onSpinStart(float finalDegrees) {
                 SoundPlayer.get(PlayActivity.this)
                         .playWheelSound();
+                giftIndex = validateWinner(finalDegrees);
             }
 
             @Override
@@ -92,7 +103,7 @@ public class PlayActivity extends AppCompatActivity {
                 } else {
                     SoundPlayer.get(PlayActivity.this)
                             .playWinningSound();
-                    showWinningScreen(degrees);
+                    showWinningScreen(giftIndex);
                 }
             }
         });
@@ -109,11 +120,10 @@ public class PlayActivity extends AppCompatActivity {
         updateTriesText(triesLeft);
 
         backButton = findViewById(R.id.btn_back);
-        backButton.setOnTouchListener(new View.OnTouchListener() {
+        backButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
+            public void onClick(View view) {
                 onBackPressed();
-                return true;
             }
         });
     }
@@ -122,6 +132,7 @@ public class PlayActivity extends AppCompatActivity {
         gestureDetector = new GestureDetectorCompat(this, new CustomGestureListener(wheel) {
             @Override
             public boolean onSwipeRight() {
+                hideTutorial();
                 if (triesLeft == 0) {
                     showNoTriesLeftSnack();
                     return true;
@@ -136,6 +147,7 @@ public class PlayActivity extends AppCompatActivity {
 
             @Override
             public boolean onSwipeLeft() {
+                hideTutorial();
                 if (triesLeft == 0) {
                     showNoTriesLeftSnack();
                     return true;
@@ -147,6 +159,12 @@ public class PlayActivity extends AppCompatActivity {
                 wheel.spinLeft();
                 return true;
             }
+
+            @Override
+            public boolean onTouch() {
+                hideTutorial();
+                return true;
+            }
         });
     }
 
@@ -154,18 +172,24 @@ public class PlayActivity extends AppCompatActivity {
         return ((finalDegrees % 360) / 30) % 3 == 0;
     }
 
-    private void showWinningScreen(float finalDegrees) {
-        //Find gift from degrees
-        int index = 12 - (int) ((finalDegrees % 360) / 30);
-        Log.d("DEBUG", "index: " + index + " degrees: " + finalDegrees);
-        Gift gift = giftsOfWheel[index];
-        GiftLab.get(this).addGift(gift);
+    private void showWinningScreen(int giftIndex) {
+        Intent intent = new Intent(this, WinActivity.class);
+        intent.putExtra(EXTRA_GIFT_INDEX, giftIndex);
+        startActivity(intent);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+    }
 
-        //Make screen
-        //Show gift image
+    private int validateWinner(float finalDegrees) {
+        int index = (12 - (int) ((finalDegrees % 360) / 30)) % 12;
+        if (lost(finalDegrees)) return 0;
+        GiftLab lab = GiftLab.get(this);
+        Gift gift = lab.getGiftsOfWheelArray()[index];
+        lab.addGift(gift);
+        return index;
     }
 
     private void onSpinClick() {
+        hideTutorial();
         if (triesLeft == 0) {
             showNoTriesLeftSnack();
             return;
@@ -174,13 +198,16 @@ public class PlayActivity extends AppCompatActivity {
         spinButton.setEnabled(false);
 
         triesLeft--;
-        wheel.spinRight();
         updateTriesText(triesLeft);
+        wheel.spinRight();
 
     }
 
     private void showNoTriesLeftSnack() {
-        Snackbar.make(layout, R.string.toast_no_tries_left, Snackbar.LENGTH_LONG).show();
+        Snackbar snackbar =
+                Snackbar.make(layout, R.string.toast_no_tries_left, Snackbar.LENGTH_LONG);
+        snackbar.getView().setBackgroundColor(ContextCompat.getColor(this, R.color.snack));
+        snackbar.show();
     }
 
     @Override
@@ -191,7 +218,6 @@ public class PlayActivity extends AppCompatActivity {
                 .getDefaultSharedPreferences(this).edit();
         if (triesLeft == 0) {
             editor.putInt(getString(R.string.key_tries), DEFAULT_TRIES);
-            GiftLab.get(this).resetGifts();
         } else {
             editor.putInt(getString(R.string.key_tries), triesLeft);
         }
@@ -199,13 +225,23 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void updateTriesText(int triesLeft) {
-        triesText.setText(String.format("Έχεις ακόμα %s προσπάθειες", triesLeft));
+        if (triesLeft == 1) {
+            triesText.setText(Html.fromHtml("Έχεις ακόμα <b>1</b> προσπάθεια"));
+        } else {
+            triesText.setText(Html.fromHtml(getString(R.string.play_tries_left, String.valueOf(triesLeft))));
+        }
+    }
+
+    private void hideTutorial() {
+        if (tutorialDialog.getVisibility() == View.VISIBLE) {
+            tutorialDialog.setVisibility(View.GONE);
+        }
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        SoundPlayer.get(this).stop();
+        SoundPlayer.get(this).pause();
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 }

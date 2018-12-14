@@ -3,6 +3,8 @@ package com.ndn.itsapptoyou.model;
 import android.content.Context;
 import android.util.Log;
 
+import com.ndn.itsapptoyou.R;
+
 import java.util.ArrayList;
 
 public class GiftLab {
@@ -16,6 +18,8 @@ public class GiftLab {
 
     private ArrayList<Gift> gifts;
     private GiftJSONSerializer serializer;
+
+    private Gift[] giftsOfWheel;
 
     private GiftLab() {}
 
@@ -36,6 +40,21 @@ public class GiftLab {
             gifts = new ArrayList<>();
             Log.e(TAG, "Error loading absenceDays ", e);
         }
+        initGiftsOfWheelArray();
+    }
+
+    private void initGiftsOfWheelArray() {
+        Gift burger = new Gift("1+1 burger meal στα Simply Burgers", R.drawable.burger);
+        Gift pizza = new Gift("1+1 πίτσα στην Pizza Hut", R.drawable.pizza);
+        Gift cinema = new Gift("1+1 εισητήριο στα Odeon Cinemas", R.drawable.popcorn);
+        Gift breakfast = new Gift("5€ κουπόνι πρωινού στα TGI Fridays", R.drawable.egg);
+        Gift hotdog = new Gift("1+1 hot dog στο Street Dog", R.drawable.sanduits);
+        Gift none = new Gift("", 0);
+        giftsOfWheel = new Gift[]{
+                none, pizza, breakfast, none,
+                cinema, burger, none, pizza,
+                breakfast, none, hotdog, burger
+        };
     }
 
     public boolean saveGifts() {
@@ -55,6 +74,10 @@ public class GiftLab {
 
     public Gift getGift(int index) {
         return gifts.get(index);
+    }
+
+    public Gift[] getGiftsOfWheelArray() {
+        return giftsOfWheel;
     }
 
     public int getTotalGifts() {

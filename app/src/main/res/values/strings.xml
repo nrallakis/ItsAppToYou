@@ -7,4 +7,6 @@
     <string name="my_gifts">Τα δώρα μου</string>
     <string name="what_you_win">Τι κερδίζεις!</string>
     <string name="spin_and_win">Γύρισε τον τροχό και κέρδισε!</string>
+    <string name="home_tries_left"><![CDATA[Έχεις <b>%s</b> προσπάθειες]]></string>
+    <string name="play_tries_left">Έχεις ακόμα <b>%s</b> προσπάθειες</string>
 </resources>

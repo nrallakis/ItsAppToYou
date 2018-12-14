@@ -93,7 +93,7 @@ public class Wheel extends AppCompatImageView {
         animation.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
-                if (spinListener != null) spinListener.onSpinStart();
+                if (spinListener != null) spinListener.onSpinStart(finalDegrees);
             }
 
             @Override
@@ -110,7 +110,7 @@ public class Wheel extends AppCompatImageView {
     }
 
     public interface SpinListener {
-        void onSpinStart();
+        void onSpinStart(float finalDegrees);
         void onSpinEnd(float degrees);
     }
 }

@@ -15,6 +15,7 @@ public abstract class CustomGestureListener extends GestureDetector.SimpleOnGest
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
         view.onTouchEvent(e);
+        onTouch();
         return super.onSingleTapConfirmed(e);
     }
 
@@ -27,10 +28,10 @@ public abstract class CustomGestureListener extends GestureDetector.SimpleOnGest
         if (e1.getX() > e2.getX()) {
             return onSwipeLeft();
         }
-
-        return true;
+        return onTouch();
     }
 
     public abstract boolean onSwipeRight();
     public abstract boolean onSwipeLeft();
+    public abstract boolean onTouch();
 }

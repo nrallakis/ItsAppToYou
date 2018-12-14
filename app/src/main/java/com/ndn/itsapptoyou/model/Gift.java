@@ -5,6 +5,8 @@ import android.support.annotation.NonNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Random;
+
 public class Gift {
 
     private static final String JSON_TEXT = "text";
@@ -14,7 +16,8 @@ public class Gift {
     private int imageId;
 
     public Gift(@NonNull String text, int imageId) {
-        this.text = text;
+        String code = "\nΚωδικός: " + (new Random().nextInt(70000) + 123456);
+        this.text = text + code;
         this.imageId = imageId;
     }
 
